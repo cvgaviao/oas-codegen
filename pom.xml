@@ -8,7 +8,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>br.com.c8tech.tools</groupId>
+  <groupId>org.cvgaviao.java.tools</groupId>
   <artifactId>oas-codegen-project</artifactId>
   <version>${revision}</version>
   <packaging>pom</packaging>
@@ -18,13 +18,12 @@
   <properties>
     <revision>1.0.0-SNAPSHOT</revision>
     <swagger-parser-groupid>io.swagger.parser.v3</swagger-parser-groupid>
-    <swagger-parser-version>2.0.26</swagger-parser-version>
+    <swagger-parser-version>2.0.27</swagger-parser-version>
     <felix-version>3.3.1</felix-version>
     <commons-io-version>2.8.0</commons-io-version>
     <commons-cli-version>1.4</commons-cli-version>
     <junit-version>4.13.2</junit-version>
-    <jackson-version>2.12.1</jackson-version>
-    <maven-plugin-version>1.0.0</maven-plugin-version>
+    <jackson-version>2.12.3</jackson-version>
     <commons-lang-version>3.12.0</commons-lang-version>
     <slf4j-version>1.7.29</slf4j-version>
     <scala-maven-plugin-version>4.4.1</scala-maven-plugin-version>
@@ -33,27 +32,32 @@
     <testng-version>7.4.0</testng-version>
     <surefire-version>3.0.0-M5</surefire-version>
     <reflections-version>0.9.12</reflections-version>
-    <mockito-version>3.9.0</mockito-version>
-    <jacoco.version>0.8.6</jacoco.version>
+    <mockito-version>3.11.2</mockito-version>
+    <jacoco.version>0.8.7</jacoco.version>
     <spotbugs.plugin.version>4.2.2</spotbugs.plugin.version>
     <pmd.plugin.version>3.14.0</pmd.plugin.version>
     <violations-maven.plugin.version>1.43</violations-maven.plugin.version>
     <checkstyle.plugin.version>3.1.2</checkstyle.plugin.version>
     <git.commit.id.plugin.version>4.0.4</git.commit.id.plugin.version>
     <forbiddenapis.version>3.1</forbiddenapis.version>
+    <formatter-maven.version>2.15.0</formatter-maven.version>
+    <guava.version>30.1.1-jre</guava.version>
+    <spiap.version>0.8.0</spiap.version>
+    <java.version>16</java.version>
+    <immutable.version>2.8.8</immutable.version>
+    <auto-service.version>1.0</auto-service.version>
+
+    <maven-plugin-version>1.0.0</maven-plugin-version>
     <maven-javadoc.version>3.2.0</maven-javadoc.version>
     <maven-release.version>3.0.0-M1</maven-release.version>
     <maven-site.version>3.9.1</maven-site.version>
     <maven-source.version>3.2.1</maven-source.version>
-    <formatter-maven.version>2.15.0</formatter-maven.version>
     <maven-enforcer.version>3.0.0-M3</maven-enforcer.version>
     <maven-resources.version>3.2.0</maven-resources.version>
     <maven-compiler.version>3.8.1</maven-compiler.version>
     <maven-jar.version>3.2.0</maven-jar.version>
     <maven-project-info.version>3.1.1</maven-project-info.version>
-    <guava-version>30.1.1-jre</guava-version>
-    <spiap.version>0.8.0</spiap.version>
-    <java.version>16</java.version>
+    <maven-shade.version>3.3.0-SNAPSHOT</maven-shade.version>
     <!-- ======================= -->
     <!-- License configuration -->
     <!-- ======================= -->
@@ -110,6 +114,24 @@
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
     <outputDirectory>target/classes</outputDirectory>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>src/main/resources-filtered</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+      </testResource>
+      <testResource>
+        <directory>src/test/resources-filtered</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
     <extensions>
       <extension>
         <groupId>org.jvnet.wagon-svn</groupId>
@@ -154,27 +176,22 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <configuration>
-          <consoleOutput>false</consoleOutput>
-          <failsOnError>false</failsOnError>
-          <excludes>**/samples/*.java</excludes>
-        </configuration>
         <executions>
           <execution>
             <id>checkstyle-check</id>
+            <inherited>false</inherited>
             <goals>
               <goal>check</goal>
             </goals>
             <phase>verify</phase>
+            <configuration>
+              <consoleOutput>false</consoleOutput>
+              <failsOnError>false</failsOnError>
+              <excludes>**/samples/*.java</excludes>
+              <configLocation>oas-codegen/google_checkstyle.xml</configLocation>
+            </configuration>
           </execution>
         </executions>
-        <dependencies>
-          <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>8.41.1</version>
-          </dependency>
-        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
@@ -221,20 +238,20 @@
           </excludes>
         </configuration>
       </plugin>
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+<!--       <plugin> -->
+<!--         <artifactId>maven-dependency-plugin</artifactId> -->
+<!--         <executions> -->
+<!--           <execution> -->
+<!--             <phase>package</phase> -->
+<!--             <goals> -->
+<!--               <goal>copy-dependencies</goal> -->
+<!--             </goals> -->
+<!--             <configuration> -->
+<!--               <outputDirectory>${project.build.directory}/lib</outputDirectory> -->
+<!--             </configuration> -->
+<!--           </execution> -->
+<!--         </executions> -->
+<!--       </plugin> -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
@@ -262,6 +279,37 @@
     </plugins>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler.version}</version>
+          <inherited>true</inherited>
+          <configuration>
+            <release>16</release>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>io.toolisticon.spiap</groupId>
+                <artifactId>spiap-processor</artifactId>
+                <version>${spiap.version}</version>
+              </path>
+              <path>
+                <groupId>org.immutables</groupId>
+                <artifactId>value-processor</artifactId>
+                <version>${immutable.version}</version>
+              </path>
+              <path>
+                <groupId>com.google.auto.service</groupId>
+                <artifactId>auto-service</artifactId>
+                <version>${auto-service.version}</version>
+              </path>
+              <path>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+              </path>
+            </annotationProcessorPaths>
+          </configuration>
+        </plugin>
         <plugin>
           <!-- This plugin is to control the headers -->
           <groupId>com.mycila</groupId>
@@ -418,26 +466,25 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
           <version>${checkstyle.plugin.version}</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.cvgaviao.java.tools</groupId>
+              <artifactId>build-tools</artifactId>
+              <version>${project.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>8.41.1</version>
+            </dependency>
+          </dependencies>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
           <version>${maven-resources.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>${maven-compiler.version}</version>
           <configuration>
-            <release>${java.version}</release>
-            <annotationProcessorPaths
-              combine.children="append">
-              <path>
-                <groupId>io.toolisticon.spiap</groupId>
-                <artifactId>spiap-processor</artifactId>
-                <version>${spiap.version}</version>
-              </path>
-            </annotationProcessorPaths>
+            <propertiesEncoding>UTF-8</propertiesEncoding>
           </configuration>
         </plugin>
         <plugin>
@@ -671,8 +718,9 @@
 
   </profiles>
   <modules>
+    <module>modules/dev-tools</module>
     <module>modules/oas-codegen-api</module>
-    <module>modules/oas-codegen-handler-spi</module>
+    <module>modules/oas-codegen-core</module>
     <module>modules/oas-codegen-cli</module>
     <module>modules/oas-codegen-maven-plugin</module>
   </modules>
@@ -701,6 +749,13 @@
       </plugin>
     </plugins>
   </reporting>
+  <dependencies>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>value</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
   <dependencyManagement>
     <dependencies>
     <!-- api is just needed in compile scope if you want to use the ServiceLocator features -->
@@ -708,6 +763,26 @@
         <groupId>io.toolisticon.spiap</groupId>
         <artifactId>spiap-api</artifactId>
         <version>${spiap.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.auto.service</groupId>
+        <artifactId>auto-service-annotations</artifactId>
+        <version>${auto-service.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.auto.service</groupId>
+        <artifactId>auto-service</artifactId>
+        <version>${auto-service.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.immutables</groupId>
+        <artifactId>value</artifactId>
+        <version>${immutable.version}</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
